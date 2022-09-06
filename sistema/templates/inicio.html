@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% if messages %}
+{% for message in messages %}
+<div {% if message.tags %} class="alert alert-{{ message.tags }} d-flex p-2 mb-2" {% endif %} role="alert">
+	<p class="mb-0"> {{ message }} </p>
+	{% endfor %}
+</div>
+{% endif %}
+
+{# connected #}
+
+<!--
+<div class="row" style="align-items: center;">
+	<div class="col-md-6 text-center">
+		<h2>ZIZI Centro <span class="text-muted fs-4">(Rua Padre Caldeira, 444)</span></h2>
+		<dl class="row">
+			<dt class="col-sm-6 text-end"><p class="lead">Telefones:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">(34) 99662-1557</p>
+				<p class="lead mb-0">(34) 3814-6000</p>
+			</dd>
+
+			<dt class="col-sm-6 text-end"><p class="lead">E-mail:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">comercial@zizi.com.br</p>
+			</dd>
+		</dl>
+	</div>
+	<div class="col-md-6 text-center">
+		<img src="{% static 'images/zizi-centro.jpg' %}" width="480" height="220" class="img-fluid">
+	</div>
+</div>
+
+<hr class="featurette-divider hr-loja">
+
+<div class="row" style="align-items: center;">
+	<div class="col-md-6 order-md-2 text-center">
+		<h2>ZIZI Brasil <span class="text-muted fs-4">(Avenida Brasil, 879)</span></h2>
+		<dl class="row">
+			<dt class="col-sm-6 text-end"><p class="lead">Telefones:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">(34) 99977-1629</p>
+				<p class="lead mb-0">(34) 3823-1366</p>
+			</dd>
+
+			<dt class="col-sm-6 text-end"><p class="lead">E-mail:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">tecidos@zizi.com.br</p>
+			</dd>
+		</dl>
+	</div>
+	<div class="col-md-6 order-md-1 text-center">
+		<img src="{% static 'images/zizi-avenida.jpg' %}" width="480" height="220" class="img-fluid">
+	</div>
+</div>
+
+<hr class="featurette-divider hr-loja">
+
+<div class="row" style="align-items: center;">
+	<div class="col-md-6 text-center">
+		<h2>ZIZI Rosário <span class="text-muted fs-4">(Rua Gabriel Pereira, 127)</span></h2>
+		<dl class="row">
+			<dt class="col-sm-6 text-end"><p class="lead">Telefones:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">(34) 99887-1636</p>
+				<p class="lead mb-0">(34) 3822-1636</p>
+			</dd>
+
+			<dt class="col-sm-6 text-end"><p class="lead">E-mail:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">rosario@zizi.com.br</p>
+			</dd>
+		</dl>
+	</div>
+	<div class="col-md-6 text-center">
+		<img src="{% static 'images/zizi-rosario.jpg' %}" width="480" height="220" class="img-fluid">
+	</div>
+</div>
+
+<hr class="featurette-divider hr-loja">
+
+<div class="row" style="align-items: center;">
+	<div class="col-md-6 order-md-2 text-center">
+		<h2>ZINT Moda Íntima <span class="text-muted fs-4">(Rua Padre Caldeira, 374)</span></h2>
+		<dl class="row">
+			<dt class="col-sm-6 text-end"><p class="lead">Telefones:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">(34) 99885-1636</p>
+				<p class="lead mb-0">(34) 3823-1310</p>
+			</dd>
+
+			<dt class="col-sm-6 text-end"><p class="lead">E-mail:</p></dt>
+			<dd class="col-sm-6 text-start">
+				<p class="lead mb-0">zint@zizi.com.br</p>
+			</dd>
+		</dl>
+	</div>
+	<div class="col-md-6 order-md-1 text-center">
+		<img src="{% static 'images/zizi-zint.jpg' %}" width="480" height="220" class="img-fluid">
+	</div>
+</div>
+-->
+{% endblock %}

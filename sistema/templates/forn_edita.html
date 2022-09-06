@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex flex-row-reverse">
+    <a href="{% url 'pedido' %}" type="button" class="btn btn-primary mb-2 float-end">
+        <i class="fa-solid fa-sm fa-angle-left"></i> Voltar
+    </a>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-3"></div>
+        <div class="col">
+            <form action="{% url 'forn_edita' pk=forn.pk %}" method="POST">
+
+                {% csrf_token %}
+
+                <div class="row mb-3">
+                    <label class="col-2 col-form-label">Razão:</label>
+                    <div class="col-10">
+                        <input id="razao" type="text" name="razao" value="{{ forn.razao }}" class="form-control"
+                            required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-2 col-form-label">CNPJ:</label>
+                    <div class="col-10">
+                        <input id="cnpj" type="number" name="cnpj" value="{{ forn.cnpj }}" class="form-control"
+                            required></input>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-3"></div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<button type="button" class="btn btn-primary mb-2 float-end" data-bs-toggle="modal" data-bs-target="#FornecedorModal">
+	<i class="fa-solid fa-sm fa-plus"></i> Novo
+</button>
+{% else %}
+
+{% endif %}
+
+{% if messages %}
+	{% for message in messages %}
+	<div {% if message.tags %} class="alert alert-{{ message.tags }} d-inline-block p-2 mb-2" {% endif %} role="alert">
+		<p class="mb-0"> {{ message }} </p>
+	{% endfor %}
+	</div>
+{% endif %}
+
+<table class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th scope="col" style="text-align: center;">ID</th>
+			<th scope="col" style="text-align: center;">Razão Social</th>
+			<th scope="col" style="text-align: center;">CNPJ</th>
+			{% if user.is_authenticated %}
+			<th scope="col" style="text-align: center;">Ações</th>
+			{% else %}
+			
+			{% endif %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for fornecedor in fornecedores %}
+		<tr>
+			<td scope="row" class="align-middle" style="text-align: center;">{{ fornecedor.id }}</td>
+			<td class="align-middle" style="text-align: center;">{{ fornecedor.razao }}</td>
+			<td class="align-middle" style="text-align: center;">{{ fornecedor.cnpj }}</td>
+			{% if user.is_authenticated %}
+			<td class="col-f-acoes align-middle" style="text-align: center;">
+				<a href="{% url 'forn_edita' pk=fornecedor.pk %}" class="btn btn-info"><i class="fa-solid fa-sm fa-pen"></i> Editar</a>
+				<a href="{% url 'forn_deleta' pk=fornecedor.pk %}" class="btn btn-danger" onclick="return confirm('Deseja realmente excluir esse fornecedor?')"><i class="fa-solid fa-sm fa-trash"></i> Excluir</a>			
+			</td>
+			{% else %}
+
+			{% endif %}
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="FornecedorModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Fornecedor</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form action="{% url 'forn_novo' %}" method="POST">
+					{% csrf_token %}
+					
+					<div class="row mb-3">
+						<label class="col-2 col-form-label">Razão:</label>
+						<div class="col-10">
+							<input id="razao" type="text" name="razao" class="form-control" required>
+						</div>
+					</div>
+					<div class="row">
+						<label class="col-2 col-form-label">CNPJ:</label>
+						<div class="col-10">
+							<input id="cnpj" type="number" name="cnpj" class="form-control" required></input>
+						</div>
+					</div>
+						
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary">Salvar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

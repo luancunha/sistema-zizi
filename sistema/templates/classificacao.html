@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if messages %}
+{% for message in messages %}
+<div {% if message.tags %} class="alert alert-{{ message.tags }} d-flex p-2 mb-2" {% endif %} role="alert">
+    <p class="mb-0"> {{ message }} </p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="d-flex flex-row-reverse">
+    <a href="{% url 'ped_dados' pk=ped.id %}" type="button" class="btn btn-primary mb-2 float-end">
+        <i class="fa-solid fa-sm fa-angle-left"></i> Voltar
+    </a>
+</div>
+
+<div class="row" style="margin: auto 10%;">
+    <div class="col">
+        <p class="fs-5"><b>Marca: </b>{{ dado.marca }}</p>
+    </div>
+    <div class="col">
+        <p class="fs-5"><b>Produto: </b>{{ dado.produto }}</p>
+    </div>
+    <div class="col">
+        <p class="fs-5"><b>Referência: </b>{{ dado.ref }}</p>
+    </div>
+</div>
+
+<div class="container">
+    <form action="{% url 'classificacao' pkd=dado.id %}" method="POST">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-6">
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Seção:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "secao" %}
+                            <select class="form-select" {{ field|cut:"<select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Sub-Seção:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "sub_secao" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Estilo:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "estilo" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Formato:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "formato" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Superior:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "superior" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Abertura:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "abertura" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Membro:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "membro" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Detalhe:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "detalhe" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-3 col-form-label">Material:</label>
+                    <div class="col-8">
+                        {% for field in form %}
+                            {% if field.name == "material" %}
+                            <select class="form-select" {{ field|cut:"< select" }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button accesskey="s" type="submit" class="btn btn-primary">Salvar</button>
+
+    </form>
+</div>
+
+{% endblock %}

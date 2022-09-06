@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex flex-row-reverse">
+	<a href="{% url 'pedido' %}" type="button" class="btn btn-primary mb-2 float-end">
+		<i class="fa-solid fa-sm fa-angle-left"></i> Voltar
+	</a>
+</div>
+
+<div class="container">
+	<div class="row">
+		<div class="col-3"></div>
+		<div class="col">
+			<form action="{% url 'ped_edita' pk=ped.pk %}" method="POST">
+				{% csrf_token %}
+				
+				<div class="row mb-3">
+					<div class="col">
+						<label class="col-3 col-form-label">Fornecedor:</label>
+						<div class="col">
+							<select name="fornecedor" id="fornecedor" class="form-select" required>
+								{% for fornecedor in fornecedores %}
+									<option value="{{ fornecedor.id }}" {% if fornecedor.razao|striptags == ped.fornecedor|striptags %} selected="selected" {% endif %}>{{ fornecedor.razao }}</option>
+									{{ fornecedor.razao|striptags }}
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					<div class="col">
+						<label class="col-3 col-form-label">Número:</label>
+						<div class="">
+							<input id="numero" type="text" name="numero" value="{{ ped.numero }}" class="form-control" required>
+						</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col">
+						<label class="col-form-label">Data:</label>
+						<div>
+							<input id="data" type="date" name="data" value="{{ ped.data|date:'Y-m-d' }}" class="form-control" required></input>
+						</div>
+					</div>
+					<div class="col">
+						<label class="col-form-label">Data de previsão:</label>
+						<div>
+							<input id="data_previsao" type="date" name="data_previsao" value="{{ ped.data_previsao|date:'Y-m-d' }}" class="form-control"
+								required></input>
+						</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col">
+						<label class="col-form-label">Prazo:</label>
+						<div>
+							<input id="prazo" type="text" name="prazo" value="{{ ped.prazo }}" class="form-control" required>
+						</div>
+					</div>
+					<div class="col">
+						<label class="col-form-label">Prazo medio:</label>
+						<div>
+							<input id="prazo_medio" type="number" name="prazo_medio" value="{{ ped.prazo_medio }}" class="form-control"
+								required>
+						</div>
+					</div>
+					<div class="col">
+						<label class="col-form-label">Loja:</label>
+						<div>
+							<input id="loja" type="text" name="loja" value="{{ ped.loja }}" class="form-control" required>
+						</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col">
+						<label class="col-form-label">Desconto:</label>
+						<div>
+							<input id="desconto" type="number" step="0.01" name="desconto" value="{{ ped.desconto|safe }}" class="form-control"
+								required></input>
+						</div>
+					</div>
+					<div class="col">
+						<label class="col-form-label">Bonificação:</label>
+						<div>
+							<input id="bonificacao" type="number" step="0.01" name="bonificacao" value="{{ ped.bonificacao|safe }}" class="form-control" required>
+						</div>
+					</div>
+					<div class="col">
+						<label class="col-form-label">Frete:</label>
+						<div>
+							<input id="frete" type="number" step="0.01" name="frete" value="{{ ped.frete|safe }}" class="form-control" required>
+						</div>
+					</div>
+					{% if ped.status|striptags == 'PA' or ped.status|striptags == 'QI' %}
+					<div style="display: none;">
+						<select name="status" id="status" class="form-select" required>
+							<option value="PA" {% if ped.status|striptags == 'PA' %} selected="selected" {% endif %}></option>
+							<option value="QI" {% if ped.status|striptags == 'QI' %} selected="selected" {% endif %}></option>
+						</select>
+					</div>
+					{% else %}
+					<div class="col">
+						<label class="col-form-label">Status:</label>
+						<select name="status" id="status" class="form-select" required>
+							<option value="LA" {% if ped.status|striptags == 'LA' %} selected="selected" {% endif %}>Lançado</option>
+							<option value="NA" {% if ped.status|striptags == 'NA' %} selected="selected" {% endif %}>NF de acordo</option>
+							<option value="ND" {% if ped.status|striptags == 'ND' %} selected="selected" {% endif %}>NF em desacordo</option>
+						</select>
+					</div>
+					{% endif %}
+				</div>
+				<div class="row mb-3">
+					<div class="col">
+						<label class="col-form-label">Observação:</label>
+						<div>
+							<textarea class="form-control" id="observacao" name="observacao" rows="2">{{ ped.observacao }}</textarea>
+						</div>
+					</div>
+				</div>
+				<div style="display: none;">
+					<input id="total" type="number" step="0.01" name="total" class="form-control" value="{{ ped.total|safe }}"></input>
+				</div>
+				
+				<div class="text-center">
+					<button type="submit" class="btn btn-primary">Salvar</button>
+				</div>
+			</form>
+		</div>
+		<div class="col-3"></div>
+	<div>
+<div>
+
+{% endblock %}

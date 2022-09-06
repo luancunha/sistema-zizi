@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="row mb-3" style="width: 50%; margin: auto;">
+    <form class="d-flex">
+        <div class="col me-3">
+            <input class="form-control" type="search" name="q" placeholder="Número">
+        </div>
+        <div class="col me-3">
+            {% if user.is_superuser %}
+            <select name="loja" id="loja" class="form-select" required>
+                <option value="00">TODAS LOJAS</option>
+                <option value="01">ZIZI COMÉRCIO</option>
+                <option value="02">ZIZI CONFECÇÕES</option>
+                <option value="04">ZIZI ROSÁRIO</option>
+                <option value="07">ZIZI MODA ÍNTIMA</option>
+            </select>
+            {% else %}
+
+            {% endif %}
+        </div>
+        <div class="col">
+            <button class="btn btn-zizi" type="submit">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="row row-cols-md-3 g-3 ps-5 pe-5" style="opacity: 0.8;">
+	<div class="col ps-5 pe-5">
+		<div class="card h-100 border-primary">
+			<div class="card-header text-white text-center p-1 bg-primary">
+				<h5 class="card-title m-1">
+					Valor Total
+			</div>
+			<div class="card-body text-center p-1">
+				<p class="fs-3 fw-bold m-0">R$ {{ total_preco|floatformat:"2g" }}</p>
+			</div>
+		</div>
+	</div>
+    <div class="col ps-5 pe-5">
+		<div class="card h-100 border-success">
+			<div class="card-header text-white text-center p-1 bg-success">
+				<h5 class="card-title m-1">
+					Quantidade de Pedidos
+			</div>
+			<div class="card-body text-center p-1">
+				<p class="fs-3 fw-bold m-0">{{ count_ped_card }}</p>
+			</div>
+		</div>
+	</div>
+    <div class="col ps-5 pe-5">
+		<div class="card h-100 border-danger">
+			<div class="card-header text-white text-center p-1 bg-danger">
+				<h5 class="card-title m-1">
+					Quantidade de Produtos
+			</div>
+			<div class="card-body text-center p-1">
+                <p class="fs-3 fw-bold m-0">{{ quant_prod }}</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+    {% if dados_forn is not None %}
+    <div class="col">
+        <canvas id="myChart" width="400" height="400"></canvas>
+    </div>
+    {% endif %}
+    {% if dados_ped is not None %}
+    <div class="col">
+        <canvas id="myChart2" width="400" height="400"></canvas>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels_ped| safe }},
+    datasets: [{
+        data: {{ dados_ped }},
+        backgroundColor: {{ cores| safe }},
+        borderColor: {{ coresb| safe }},
+        borderWidth: 1,
+        hoverOffset: 4,
+            }]
+        },
+    options: {
+        layout: {
+            padding: 10,
+            },
+        plugins: {
+            title: {
+                display: true,
+                    text: 'Quantidade de produtos pedentes',
+                        font: {
+                    size: 16
+                }
+            },
+            legend: {
+                display: false,
+                    labels: {
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+        },
+        responsive: true,
+            scales: {
+            x: {
+                stacked: true,
+                },
+            y: {
+                stacked: true,
+                },
+        },
+        interaction: {
+            mode: 'index',
+            },
+    }
+    });
+
+    const ctx2 = document.getElementById('myChart2');
+    const myChart2 = new Chart(ctx2, {
+        type: 'pie',
+        data: {
+            labels: {{ labels_forn| safe }},
+    datasets: [{
+        data: {{ dados_forn }},
+        backgroundColor: {{ cores| safe }},
+        borderColor: {{ coresb| safe }},
+        borderWidth: 1,
+        hoverOffset: 4,
+            }]
+        },
+    options: {
+        layout: {
+            padding: 10,
+            },
+        plugins: {
+            title: {
+                display: true,
+                    text: 'Valor total por Fornecedor',
+                        font: {
+                    size: 16
+                }
+            },
+            legend: {
+                labels: {
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+        }
+    }
+    });
+
+</script>
+
+{% endblock %}

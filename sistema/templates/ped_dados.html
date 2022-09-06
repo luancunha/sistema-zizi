@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if messages %}
+{% for message in messages %}
+<div {% if message.tags %} class="alert alert-{{ message.tags }} d-inline-block p-2 mb-2" {% endif %} role="alert">
+	<p class="mb-0"> {{ message }} </p>
+	{% endfor %}
+</div>
+{% endif %}
+
+<div class="row">
+	<div class="col">
+		<p class="fs-5 mb-0"><b>Pedido: </b>{{ ped.numero }}</p>
+		<p class="fs-5 mb-0"><b>Fornecedor: </b>{{ ped.fornecedor }}</p>
+		<p class="fs-5 mb-0"><b>Data: </b>{{ ped.data }}</p>
+		<p class="fs-5 mb-0"><b>Prazo: </b>{{ ped.prazo_medio }}</p>
+		<p class="fs-5 mb-0"><b>Loja: </b>{{ ped.loja }}</p>
+		<p class="fs-5 mb-0"><b>Status: </b>
+			{% if ped.status == 'LA' %} Lançado
+			{% elif ped.status == 'PA' %} Parcial
+			{% elif ped.status == 'QI' %} Quitado
+			{% elif ped.status == 'NA' %} NF de acordo
+			{% elif ped.status == 'ND' %} NF em desacordo
+			{% endif %}</p>
+		<p class="fs-5"><b>*Observação: </b>{{ ped.observacao }}</p>
+	</div>
+	<div class="col">
+		<p class="fs-5 mb-0"><b>Valor: </b>R${{ ped.total }}</p>
+		<p class="fs-5 mb-0"><b>Quantidade de peças: </b>{{ pecas }}</p>
+		<p class="fs-5 mb-0"><b>Data de previsão: </b>{{ ped.data_previsao }}</p>
+		<p class="fs-5 mb-0"><b>Desconto: </b>{{ ped.desconto }}</p>
+		<p class="fs-5 mb-0"><b>Bonificação: </b>{{ ped.bonificacao }}</p>
+		<p class="fs-5"><b>Frete: </b>{{ ped.frete }}</p>
+	</div>
+</div>
+
+{% if formset.management_form.initial.TOTAL_FORMS == 0 and user.is_superuser %}
+	<a href="#" class="btn btn-info mb-2" data-bs-toggle="modal" data-bs-target="#CopiaPedidoModal">Copiar Pedido <i class="fa-solid fa-sm fa-copy"></i></a>
+{% endif %}
+
+<form method="POST">
+	{% csrf_token %}
+
+	{{ formset.management_form }}
+
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th scope="col">Pedido</th>
+				<th scope="col">Marca</th>
+				<th scope="col">Produto</th>
+				<th scope="col">Referência</th>
+				<th scope="col" class="col-1">Tamanho</th>
+				<th scope="col" class="col-1">Quantidade</th>
+				{% if user.is_superuser %}
+
+				{% else %}
+				<th scope="col" class="col-1">Baixa</th>
+				{% endif %}
+				<th scope="col" class="col-1">Custo</th>
+				<th scope="col" class="col-1">ICMS</th>
+				{% if user.is_superuser %}
+				<th scope="col" class="w-10">Ações</th>
+				{% else %}
+				<th scope="col">Ações</th>
+				{% endif %}
+			</tr>
+		</thead>
+
+		<tbody id='dado-form-list'>
+			{% for form in formset %}
+			<tr class='dado-form'>
+				{% if form.status.value and user.is_superuser == False %}
+
+				{% else %}
+				{% for field in form %}
+				{% if field.name == "pedido" %}
+				<td>
+					{{ field }}
+				</td>
+				{% elif field.name == "status" %}
+				<td style="display: none;">
+					{{ field }}
+				</td>
+				{% elif field.name == "status_class" %}
+				<td style="display: none;">
+					{{ field }}
+				</td>
+				{% elif field.name == "preco_venda" %}
+				<td style="display: none;">
+					{{ field }}
+				</td>
+				{% elif field.name == "quant_baixa" and user.is_superuser == True %}
+				<td style="display: none;">
+					{{ field }}
+				</td>
+				{% elif field.name == "id" %}
+				<td>
+					{{ field }}
+					{% if user.is_superuser %}
+					<a href="{% url 'ped_dados_deleta' pkp=ped.id pkd=field.value %}" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Excluir item"><i
+							class="fa-solid fa-sm fa-trash"></i></a>
+					<a href="{% url 'classificacao' pkd=field.value %}"
+						class="btn btn{% if form.status_class.value %}-success{% else %}-warning{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Classificar item"><i
+							class="fa-solid fa-sm fa-tags"></i></a>
+
+					<a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#PrecoVendaModal"
+						onclick="setaPrecoModal('{{ form.preco_venda.value }}')" data-bs-placement="bottom" title="Preço de venda"><i
+							class="fa-solid fa-sm fa-dollar-sign"></i></a>
+
+					{% else %}
+					<button type="button" class="btn btn-{% if form.quant_baixa.value > 0 %}warning{% else %}primary{% endif %} mb-2" data-bs-toggle="modal"
+						data-bs-target="#BaixaModal" onclick="setaDadosModal('{{ field.value }}')" data-bs-placement="bottom" title="Baixar item">
+						<i class="fa-solid fa-sm fa-check"></i>
+					</button>
+					{% endif %}
+				</td>
+				{% else %}
+				<td>
+					{{ field|cut:">" }} class="form-control" required>
+				</td>
+				{% endif %}
+				{% endfor %}
+				{% endif %}
+			</tr>
+			{% endfor %}
+
+			{% if formset.management_form.initial.TOTAL_FORMS == 0 %}
+
+			<tr id='empty-form' class='hidden'>
+				{% for form in formset.empty_form %}
+				{% if form.name == "pedido" %}
+				<td>
+					{{ form }}
+				</td>
+				{% elif form.name == "status" %}
+				<td style="display: none;">
+					{{ form }}
+				</td>
+				{% elif form.name == "status_class" %}
+				<td style="display: none;">
+					{{ form }}
+				</td>
+				{% elif form.name == "preco_venda" %}
+				<td style="display: none;">
+					{{ form }}
+				</td>
+				{% elif form.name == "quant_baixa" and user.is_superuser == True %}
+				<td style="display: none;">
+					{{ field }}
+				</td>
+				{% elif form.name == "id" %}
+				<td>
+					{{ form }}
+				</td>
+				{% else %}
+				<td>
+					{{ form|cut:">" }} class="form-control">
+				</td>
+				{% endif %}
+				{% endfor %}
+			</tr>
+			{% endif %}
+
+		</tbody>
+	</table>
+
+	<div class="fixed-bottom" style="margin-left: 5%; width: 21.2em; padding-bottom: 0.6em; background-color: #FFF!important;">
+	{% if user.is_superuser %}
+	{% if formset.management_form.initial.TOTAL_FORMS == 0 %}
+	<button accesskey="a" id='add-more' type="button" class="btn btn-success"><i class="fa-solid fa-sm fa-add"></i>
+		Adicionar</button>
+	{% else %}
+	<button accesskey="a" type="button" class="btn btn-success" onclick="inserir_inputs()"><i
+			class="fa-solid fa-sm fa-add"></i>
+		Adicionar</button>
+	{% endif %}
+	<button accesskey="s" type="submit" class="btn btn-primary">Salvar</button>
+	<a href="{% url 'imprimir' pk=ped.id %}" class="btn btn-info" target="_blank">Imprimir <i
+			class="fa-solid fa-sm fa-print"></i></a>
+	{% else %}
+	<a href="{% url 'imprimir' pk=ped.id %}" class="btn btn-info" target="_blank">Imprimir <i
+			class="fa-solid fa-sm fa-print"></i></a>
+	{% if ped.status != 'QI' %}
+	<a href="{% url 'baixar_todo_pedido' pk=ped.id %}" class="btn btn-danger" onclick="return confirm('Deseja realmente baixar todo o pedido?')">Baixar Todos <i
+			class="fa-solid fa-sm fa-arrow-down"></i></a>
+	{% endif %}
+	{% endif %}
+	</div>
+
+</form>
+
+<!-- Modal -->
+<div class="modal fade" id="BaixaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Baixa</h5>
+			</div>
+			<form action="{% url 'baixa' %}" method="POST">
+				{% csrf_token %}
+
+				<div class="modal-body">
+					<input type="hidden" name="id" id="id" class="form-control">
+					<input type="number" name="baixa" id="baixa" class="form-control" required>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+					<button type="submit" class="btn btn-primary">Salvar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="CopiaPedidoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Copia Pedido</h5>
+			</div>
+			<form action="{% url 'copiar_pedido' pk=ped.id %}" method="POST">
+				{% csrf_token %}
+
+				<div class="modal-body">
+					<select name="id_ped" id="id_ped" class="form-select" required>
+						{% for pedido in pedidos_all %}
+							<option value="{{ pedido.id }}">{{ pedido.numero }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+					<button type="submit" class="btn btn-primary">Copiar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="PrecoVendaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Preço de Venda</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<div class="modal-body">
+				<p id="preco_venda" class="text-center fs-4 mb-0">Valor qualquer</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$(".click").click(function () {
+		$([document.documentElement, document.body]).animate({
+			scrollTop: $(".elementofixo").offset().top
+		}, 2000);
+	});
+</script>
+
+<script>
+	function setaDadosModal(valor) {
+		document.getElementById('id').value = valor;
+		document.getElementById('baixa').focus();
+	}
+
+	function setaPrecoModal(preco, id) {
+		document.getElementById('preco_venda').innerHTML = "R$ " + preco;
+	}
+
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
+
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="modal"]'))
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl)
+	})
+</script>
+
+{% if user.is_superuser == False %}
+<script>
+	var total_forms = document.getElementById('id_form-INITIAL_FORMS');
+
+	var total_forms_ini = parseInt(total_forms.value);
+
+	console.log(total_forms_ini)
+
+	for (let i = 0; i < total_forms_ini; i++) {
+
+		var form_pedido = document.getElementById(`id_form-${i}-pedido`);
+		var form_marca = document.getElementById(`id_form-${i}-marca`);
+		var form_produto = document.getElementById(`id_form-${i}-produto`);
+		var form_ref = document.getElementById(`id_form-${i}-ref`);
+		var form_tamanho = document.getElementById(`id_form-${i}-tamanho`);
+		var form_quant = document.getElementById(`id_form-${i}-quant`);
+		var form_quant_baixa = document.getElementById(`id_form-${i}-quant_baixa`);
+		var form_custo = document.getElementById(`id_form-${i}-custo`);
+		var form_icms = document.getElementById(`id_form-${i}-icms`);
+
+		if (form_pedido == null) {
+
+		} else {
+			form_pedido.setAttribute('disabled', '');
+			form_marca.setAttribute('disabled', '');
+			form_produto.setAttribute('disabled', '');
+			form_ref.setAttribute('disabled', '');
+			form_tamanho.setAttribute('disabled', '');
+			form_quant.setAttribute('disabled', '');
+			form_quant_baixa.setAttribute('disabled', '');
+			form_custo.setAttribute('disabled', '');
+			form_icms.setAttribute('disabled', '');
+		}
+
+	}
+
+</script>
+{% else %}
+
+{% if formset.management_form.initial.TOTAL_FORMS == 0 %}
+<script>
+
+	const addMoreBtn = document.getElementById('add-more')
+	const totalNewForms = document.getElementById('id_form-TOTAL_FORMS')
+
+	addMoreBtn.addEventListener('click', add_new_form)
+	function add_new_form(event) {
+		if (event) {
+			event.preventDefault()
+		}
+		const currentDadosForms = document.getElementsByClassName('dado-form')
+		const currentFormCount = currentDadosForms.length // + 1
+		const formCopyTarget = document.getElementById('dado-form-list')
+		const copyEmptyFormEl = document.getElementById('empty-form').cloneNode(true)
+		copyEmptyFormEl.setAttribute('class', 'dado-form')
+		copyEmptyFormEl.setAttribute('id', `form-${currentFormCount}`)
+		const regex = new RegExp('__prefix__', 'g')
+		copyEmptyFormEl.innerHTML = copyEmptyFormEl.innerHTML.replace(regex, currentFormCount)
+		totalNewForms.setAttribute('value', currentFormCount + 1)
+		// now add new empty form element to our html form
+		formCopyTarget.append(copyEmptyFormEl)
+
+		const form_pedido = document.getElementById(`id_form-${currentFormCount}-pedido`);
+		const form_marca = document.getElementById(`id_form-${currentFormCount}-marca`);
+		const form_produto = document.getElementById(`id_form-${currentFormCount}-produto`);
+		const form_ref = document.getElementById(`id_form-${currentFormCount}-ref`);
+		const form_tamanho = document.getElementById(`id_form-${currentFormCount}-tamanho`);
+		const form_quant = document.getElementById(`id_form-${currentFormCount}-quant`);
+		const form_quant_baixa = document.getElementById(`id_form-${currentFormCount}-quant_baixa`);
+		const form_custo = document.getElementById(`id_form-${currentFormCount}-custo`);
+		const form_icms = document.getElementById(`id_form-${currentFormCount}-icms`);
+		//const form_status = document.getElementById('id_form-0-status');
+
+		form_pedido.setAttribute('required', '');
+		form_marca.setAttribute('required', '');
+		form_produto.setAttribute('required', '');
+		form_ref.setAttribute('required', '');
+		form_tamanho.setAttribute('required', '');
+		form_quant.setAttribute('required', '');
+		form_quant_baixa.setAttribute('required', '');
+		form_custo.setAttribute('required', '');
+		form_icms.setAttribute('required', '');
+		//form_icms.setAttribute('type', 'hidden');
+
+		total_forms.value = parseInt(total_forms.value) + 1;
+		total_forms_ini = parseInt(total_forms.value) - 1;
+	}
+</script>
+
+{% else %}
+
+<script>
+
+	var total_forms = document.querySelector('#id_form-TOTAL_FORMS');
+
+	var total_forms_ini = parseInt(total_forms.value) - 1;
+	console.log(total_forms_ini);
+
+	var input_focus = parseInt(total_forms.value);
+
+	function inserir_inputs() {
+
+		novo_input_pedido = document.querySelector(`#id_form-${total_forms_ini}-pedido`).cloneNode(true);
+		novo_input_pedido.name = 'form-' + total_forms.value + '-pedido';
+		novo_input_pedido.id = 'id_form-' + total_forms.value + '-pedido';
+
+		novo_input_marca = document.querySelector(`#id_form-${total_forms_ini}-marca`).cloneNode(true);
+		novo_input_marca.name = 'form-' + total_forms.value + '-marca';
+		novo_input_marca.id = 'id_form-' + total_forms.value + '-marca';
+
+		novo_input_produto = document.querySelector(`#id_form-${total_forms_ini}-produto`).cloneNode(true);
+		novo_input_produto.name = 'form-' + total_forms.value + '-produto';
+		novo_input_produto.id = 'id_form-' + total_forms.value + '-produto';
+
+		novo_input_ref = document.querySelector(`#id_form-${total_forms_ini}-ref`).cloneNode(true);
+		novo_input_ref.name = 'form-' + total_forms.value + '-ref';
+		novo_input_ref.id = 'id_form-' + total_forms.value + '-ref';
+
+		novo_input_tamanho = document.querySelector(`#id_form-${total_forms_ini}-tamanho`).cloneNode(true);
+		novo_input_tamanho.name = 'form-' + total_forms.value + '-tamanho';
+		novo_input_tamanho.id = 'id_form-' + total_forms.value + '-tamanho';
+		novo_input_tamanho.value = '';
+
+		novo_input_quant = document.querySelector(`#id_form-${total_forms_ini}-quant`).cloneNode(true);
+		novo_input_quant.name = 'form-' + total_forms.value + '-quant';
+		novo_input_quant.id = 'id_form-' + total_forms.value + '-quant';
+		novo_input_quant.value = '';
+
+		/*novo_input_quant_baixa = document.querySelector(`#id_form-${total_forms_ini}-quant_baixa`).cloneNode(true);
+		novo_input_quant_baixa.name = 'form-' + total_forms.value + '-quant_baixa';
+		novo_input_quant_baixa.id = 'id_form-' + total_forms.value + '-quant_baixa';
+		novo_input_quant_baixa.value = '0';*/
+
+		novo_input_custo = document.querySelector(`#id_form-${total_forms_ini}-custo`).cloneNode(true);
+		novo_input_custo.name = 'form-' + total_forms.value + '-custo';
+		novo_input_custo.id = 'id_form-' + total_forms.value + '-custo';
+
+		novo_input_icms = document.querySelector(`#id_form-${total_forms_ini}-icms`).cloneNode(true);
+		novo_input_icms.name = 'form-' + total_forms.value + '-icms';
+		novo_input_icms.id = 'id_form-' + total_forms.value + '-icms';
+
+		novo_input_id = document.querySelector(`#id_form-${total_forms_ini}-id`).cloneNode(true);
+		novo_input_id.name = 'form-' + total_forms.value + '-id';
+		novo_input_id.id = 'id_form-' + total_forms.value + '-id';
+		novo_input_id.value = '';
+
+		var tr = document.createElement('tr');
+
+		var tdpe = document.createElement('td');
+		var tdm = document.createElement('td');
+		var tdp = document.createElement('td');
+		var tdr = document.createElement('td');
+		var tdt = document.createElement('td');
+		var tdq = document.createElement('td');
+		var tdqb = document.createElement('td');
+		var tdic = document.createElement('td');
+		var tdc = document.createElement('td');
+		var tdi = document.createElement('td');
+
+		tdpe.appendChild(novo_input_pedido);
+		tdm.appendChild(novo_input_marca);
+		tdp.appendChild(novo_input_produto);
+		tdr.appendChild(novo_input_ref);
+		tdt.appendChild(novo_input_tamanho);
+		tdq.appendChild(novo_input_quant);
+		//tdqb.appendChild(novo_input_quant_baixa);
+		tdc.appendChild(novo_input_custo);
+		tdic.appendChild(novo_input_icms);
+		tdi.appendChild(novo_input_id);
+
+		tr.appendChild(tdpe);
+		tr.appendChild(tdm);
+		tr.appendChild(tdp);
+		tr.appendChild(tdr);
+		tr.appendChild(tdt);
+		tr.appendChild(tdq);
+		//tr.appendChild(tdqb);
+		tr.appendChild(tdc);
+		tr.appendChild(tdic);
+		tr.appendChild(tdi);
+
+		document.querySelector('#dado-form-list').appendChild(tr);
+
+		total_forms.value = parseInt(total_forms.value) + 1;
+		total_forms_ini = parseInt(total_forms.value) - 1;
+
+		document.getElementById(`id_form-${input_focus}-produto`).focus();
+
+		window.scrollTo({
+			top: 100000,
+			left: 0,
+			behavior: 'smooth'
+		});
+	}
+
+</script>
+{% endif %}
+{% endif %}
+
+{% endblock %}

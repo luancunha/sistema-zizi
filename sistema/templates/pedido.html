@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if messages %}
+{% for message in messages %}
+<div {% if message.tags %} class="alert alert-{{ message.tags }} d-flex p-2 mb-2" {% endif %} role="alert">
+	<p class="mb-0"> {{ message }} </p>
+	{% endfor %}
+</div>
+{% endif %}
+
+{% if user.is_superuser %}
+<div class="d-flex flex-row-reverse">
+	<button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#PedidoModal">
+		<i class="fa-solid fa-sm fa-plus"></i> Novo
+	</button>
+</div>
+{% else %}
+
+{% endif %}
+
+<div class="row">
+	<div class="col-1">
+	</div>
+	<div class="col">
+		<form class="d-flex mb-2">
+			<div class="form-check form-check-inline align-self-center">
+				<input class="form-check-input" type="radio" name="tipo" id="num" value="num">
+				<label class="form-check-label" for="inlineRadio1">Número</label>
+			</div>
+			<div class="form-check form-check-inline align-self-center">
+				<input class="form-check-input" type="radio" name="tipo" id="forn" value="forn">
+				<label class="form-check-label" for="inlineRadio2">Fornecedor</label>
+			</div>
+			<input class="form-control me-2" type="search" name="q" placeholder="Pesquisar">
+			<input class="form-control me-2" type="date" id="data_ini" name="data_ini">
+			<input class="form-control me-2" type="date" id="data_fim" name="data_fim">
+
+			{% if user.is_superuser %}
+			<select name="loja" id="loja" class="form-select" required>
+				<option value="00">TODAS LOJAS</option>
+				<option value="01">ZIZI COMÉRCIO</option>
+				<option value="02">ZIZI CONFECÇÕES</option>
+				<option value="04">ZIZI ROSÁRIO</option>
+				<option value="07">ZIZI MODA ÍNTIMA</option>
+			</select>
+			{% else %}
+
+			{% endif %}
+
+			<button class="btn btn-zizi ms-2" type="submit">Procurar</button>
+		</form>
+	</div>
+	<div class="col-1">
+	</div>
+</div>
+
+<table class="table table-bordered table-hover">
+	<thead>
+		<tr>
+			<th scope="col" class="col-1" style="text-align: center;">Status</th>
+			<th scope="col" style="text-align: center;">Fornecedor - Loja</th>
+			<th scope="col" style="text-align: center;">Número</th>
+			<th scope="col" style="text-align: center;">Data</th>
+			<th scope="col" style="text-align: center;">Ações</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		{% for pedido in pedidos %}
+		<tr>
+			<td class="align-middle" style="text-align: center;">
+				<button type="button" class="btn btn-lg" disabled
+					style="{% if pedido.status == 'LA' %}background-color: #1E90FF!important;{% elif pedido.status == 'PA' %}background-color: #DAA520!important;{% elif pedido.status == 'QI' %}background-color: #808080!important;{% elif pedido.status == 'NA' %}background-color: #3CB371!important;{% else %}background-color: #A52A2A!important;{% endif %}opacity: 1!important;"></button>
+			</td>
+			<td class="align-middle" style="text-align: center;">
+				{% if pedido.fornecedor|wordcount > 1 %}
+				{{ pedido.fornecedor|truncatewords:1|slice:":-2" }} - Loja {{ pedido.loja }}
+				{% else %}
+				{{ pedido.fornecedor }} - Loja {{ pedido.loja }}
+				{% endif %}
+			</td>
+			<td class="align-middle" style="text-align: center;">
+				{{ pedido.numero }}
+			</td>
+			<td class="align-middle" style="text-align: center;">
+				{{ pedido.data }}
+			</td>
+			<td class="align-middle" style="text-align: center;">
+				{% if user.is_superuser %}
+				<a href="{% url 'ped_dados' pk=pedido.pk %}" class="btn btn-success" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Adicionar itens"><i class="fa-solid fa-sm fa-plus"></i></a>
+				<a href="{% url 'ped_edita' pk=pedido.pk %}" class="btn btn-info" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Editar pedido"><i class="fa-solid fa-sm fa-pen"></i></a>
+				<a id="excluir" href="{% url 'ped_deleta' pk=pedido.pk %}" class="btn btn-danger"
+					onclick="return confirm('Deseja realmente excluir esse pedido?')" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Excluir pedido"><i class="fa-solid fa-sm fa-trash"></i></a>
+				<a href="{% url 'imprimir' pk=pedido.id %}" class="btn btn-primary" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Imprimir" target="_blank"><i
+						class="fa-solid fa-sm fa-print"></i></a>
+				{% else %}
+				<a href="{% url 'ped_dados' pk=pedido.pk %}" class="btn btn-success" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Baixar itens"><i class="fa-solid fa-sm fa-plus"></i></a>
+				<a href="{% url 'imprimir' pk=pedido.id %}" class="btn btn-primary" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Imprimir" target="_blank"><i
+						class="fa-solid fa-sm fa-print"></i></a>
+				{% endif %}
+			</td>
+		</tr>
+		{% empty %}
+		<div class="alert alert-dark d-flex p-2 mb-2" role="alert" style="justify-content: center; margin: 5% auto;">
+			<p class="mb-0"> Nenhum Pedido encontrado.</p>
+		</div>
+		{% endfor %}
+	</tbody>
+</table>
+<!--
+<div class="row row-cols-md-4 g-4">
+	{% for pedido in pedidos %}
+	<div class="col">
+		<div class="card h-100">
+			<div class="card-header text-white text-center p-1"
+				style="{% if pedido.status == 'LA' %}background-color: #1E90FF!important;{% elif pedido.status == 'PA' %}background-color: #DAA520!important;{% elif pedido.status == 'QI' %}background-color: #808080!important;{% elif pedido.status == 'NA' %}background-color: #3CB371!important;{% else %}background-color: #A52A2A!important;{% endif %}">
+				<h5 class="card-title m-1">
+					{% if pedido.fornecedor|wordcount > 1 %}
+					{{ pedido.fornecedor|truncatewords:1|slice:":-2" }} - Loja {{ pedido.loja }}
+					{% else %}
+					{{ pedido.fornecedor }} - Loja {{ pedido.loja }}
+					{% endif %}
+				</h5>
+			</div>
+			<div class="card-body">
+				<p class="card-text">
+					{{ pedido.numero }}
+					<br>
+					{{ pedido.data }}
+				</p>
+			</div>
+
+			<div class="card-footer text-center">
+				{% if user.is_superuser %}
+				<a href="{% url 'ped_dados' pk=pedido.pk %}" class="btn btn-success" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Adicionar itens"><i class="fa-solid fa-sm fa-plus"></i></a>
+				<a href="{% url 'ped_edita' pk=pedido.pk %}" class="btn btn-info" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Editar pedido"><i class="fa-solid fa-sm fa-pen"></i></a>
+				<a id="excluir" href="{% url 'ped_deleta' pk=pedido.pk %}" class="btn btn-danger"
+					onclick="return confirm('Deseja realmente excluir esse pedido?')" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Excluir pedido"><i class="fa-solid fa-sm fa-trash"></i></a>
+				<a href="{% url 'imprimir' pk=pedido.id %}" class="btn btn-primary" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Imprimir" target="_blank"><i
+						class="fa-solid fa-sm fa-print"></i></a>
+				{% else %}
+				<a href="{% url 'ped_dados' pk=pedido.pk %}" class="btn btn-success" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Baixar itens"><i class="fa-solid fa-sm fa-plus"></i></a>
+				<a href="{% url 'imprimir' pk=pedido.id %}" class="btn btn-primary" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Imprimir" target="_blank"><i
+						class="fa-solid fa-sm fa-print"></i></a>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% empty %}
+	<div class="alert alert-dark d-flex p-2 mb-2" role="alert" style="justify-content: center; margin: 5% auto;">
+		<p class="mb-0"> Nenhum Pedido encontrado.</p>
+	</div>
+	{% endfor %}
+</div>
+-->
+<br>
+{% if pedidos.has_other_pages %}
+<nav aria-label="Page navigation example">
+	<ul class="pagination justify-content-center">
+		{% if pedidos.has_previous %}
+		<li class="page-item">
+			<a class="page-link" href="?page={{ pedidos.previous_page_number }}">&laquo;</a>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+		{% endif %}
+		{% for i in pedidos.paginator.page_range %}
+		{% if pedidos.number == i %}
+		<li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+		{% else %}
+		<li class="page-item">
+			<a class="page-link" href="?page={{ i }}">{{ i }}</a>
+		</li>
+		{% endif %}
+		{% endfor %}
+		{% if pedidos.has_next %}
+		<li class="page-item">
+			<a class="page-link" href="?page={{ pedidos.next_page_number }}">&raquo;</a>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+		{% endif %}
+	</ul>
+	{% endif %}
+
+	<div class="row">
+		<div class="col"></div>
+		<div class="col">
+			<button type="button" class="btn btn-lg" disabled
+				style="background-color: #1E90FF;border-color: #1E90FF;opacity: 1!important;"></button> Lançado
+		</div>
+		<div class="col">
+			<button type="button" class="btn btn-secondary btn-lg" disabled
+				style="background-color: #DAA520;border-color: #DAA520;opacity: 1!important;"></button> Parcial
+		</div>
+		<div class="col">
+			<button type="button" class="btn btn-secondary btn-lg" disabled
+				style="background-color: #808080;border-color: #808080;opacity: 1!important;"></button> Quitado
+		</div>
+		<div class="col">
+			<button type="button" class="btn btn-secondary btn-lg" disabled
+				style="background-color: #3CB371;border-color: #3CB371;opacity: 1!important;"></button> NF de acordo
+		</div>
+		<div class="col">
+			<button type="button" class="btn btn-secondary btn-lg" disabled
+				style="background-color: #A52A2A;border-color: #A52A2A;opacity: 1!important;"></button> NF em desacordo
+		</div>
+		<div class="col"></div>
+	</div>
+
+	<!-- Modal -->
+	<div class="modal fade" id="PedidoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">Pedido</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form action="{% url 'ped_novo' %}" method="POST">
+						{% csrf_token %}
+
+						<div class="row mb-3">
+							<div class="col">
+								<label class="col-form-label">Fornecedor:</label>
+								<div>
+									<select name="fornecedor" id="fornecedor" required>
+										<option value=""></option>
+										{% for fornecedor in fornecedores %}
+										<option value="{{ fornecedor.id }}">{{ fornecedor.razao }}</option>
+										{% endfor %}
+									</select>
+								</div>
+							</div>
+							<div class="col">
+								<label class="col-form-label">Número:</label>
+								<div>
+									<input id="numero" type="text" name="numero" class="form-control" required>
+								</div>
+							</div>
+						</div>
+						<div class="row mb-3">
+							<div class="col">
+								<label class="col-form-label">Data:</label>
+								<div>
+									<input id="data" type="date" name="data" class="form-control" required></input>
+								</div>
+							</div>
+							<div class="col">
+								<label class="col-form-label">Data de previsão:</label>
+								<div>
+									<input id="data_previsao" type="date" name="data_previsao" class="form-control"
+										required></input>
+								</div>
+							</div>
+						</div>
+						<div class="row mb-3">
+							<div class="col">
+								<label class="col-form-label">Prazo:</label>
+								<div>
+									<input id="prazo" type="text" name="prazo" class="form-control" required>
+								</div>
+							</div>
+							<div class="col">
+								<label class="col-form-label">Prazo medio:</label>
+								<div>
+									<input id="prazo_medio" type="number" name="prazo_medio" class="form-control"
+										required>
+								</div>
+							</div>
+							<div class="col">
+								<label class="col-form-label">Loja:</label>
+								<div>
+									<input id="loja" type="text" name="loja" class="form-control" required>
+								</div>
+							</div>
+						</div>
+						<div class="row mb-3">
+							<div class="col">
+								<label class="col-form-label">Desconto:</label>
+								<div>
+									<input id="desconto" type="number" step="0.01" name="desconto" class="form-control"
+										required></input>
+								</div>
+							</div>
+							<div class="col">
+								<label class="col-form-label">Bonificação:</label>
+								<div>
+									<input id="bonificacao" type="number" step="0.01" name="bonificacao"
+										class="form-control" required>
+								</div>
+							</div>
+							<div class="col">
+								<label class="col-form-label">Frete:</label>
+								<div>
+									<input id="frete" type="number" step="0.01" name="frete" class="form-control"
+										required>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col">
+								<label class="col-form-label">Observação:</label>
+								<div>
+									<textarea class="form-control" id="observacao" name="observacao"
+										rows="2"></textarea>
+								</div>
+							</div>
+						</div>
+						<div style="display: none;">
+							<input id="total" type="number" name="total" class="form-control" value="0"></input>
+						</div>
+						<div style="display: none;">
+							<input id="status" type="text" name="status" class="form-control" value="LA"></input>
+						</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary">Salvar</button>
+				</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.27.1/slimselect.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.27.1/slimselect.min.css" rel="stylesheet">
+	</link>
+
+	<script>
+
+		const date = new Date();
+
+		const dateCopy = new Date(date.getTime());
+
+		dateCopy.setFullYear(date.getFullYear() - 1);
+
+		document.getElementById('data_fim').valueAsDate = date;
+		document.getElementById('data_ini').valueAsDate = dateCopy;
+
+		new SlimSelect({
+			select: '#fornecedor'
+		})
+
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+			return new bootstrap.Tooltip(tooltipTriggerEl)
+		})
+
+	</script>
+
+	{% endblock %}
